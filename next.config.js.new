@@ -1,0 +1,95 @@
+// Import the withPWA function from next-pwa
+import withPWA from "next-pwa";
+
+// Configure PWA options
+const pwaConfig = withPWA({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  runtimeCaching: [
+    {
+      urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "google-fonts",
+        expiration: {
+          maxEntries: 4,
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 365 days
+        },
+      },
+    },
+    {
+      urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+      handler: "CacheFirst",
+      options: {
+        cacheName: "google-fonts",
+        expiration: {
+          maxEntries: 4,
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 365 days
+        },
+      },
+    },
+  ],
+});
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Enable static exports for fallback pages
+  output: "standalone",
+  
+  // Optimize CSS for production
+  experimental: {
+    optimizeCss: true,
+  },
+  
+  // Configure image sources
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "ik.imagekit.io",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "source.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "pub-d6475def8a4045c2992481493ad3c8e4.r2.dev",
+      },
+    ],
+    formats: ["image/webp", "image/avif"],
+  },
+  
+  // Add trailing slash to all routes (helps with Netlify routing)
+  trailingSlash: true,
+  
+  // Improve page loading
+  compress: true,
+  poweredByHeader: false,
+  
+  // Handle redirects at the Next.js level
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'x-forwarded-host',
+          },
+        ],
+        destination: '/:path*',
+        permanent: true,
+      },
+    ];
+  },
+};
+
+// Export the final config
+export default pwaConfig(nextConfig);
